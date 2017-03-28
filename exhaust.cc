@@ -1,6 +1,9 @@
 #include <cstdio>
 #include <iostream>
 #include <cmath>
+#include <vector>
+
+#include <unistd.h>
 
 using namespace std;
 
@@ -63,11 +66,23 @@ public:
     last_place.j = j;
   }
 
-  const uint max_possible() {
+  int free_count() const {
+    return n_free;
+  }
+
+  bool done() const {
+    return n_free == 0;
+  }
+
+  uint score() const {
+    return max[0];
+  }
+
+  uint max_possible() const {
     return nth_fib(n_free, max[0], max[1]);
   }
 
-  const bool avail(int i, int j) {
+  bool avail(int i, int j) const {
     if (vals[i][j] != 0) return false;
     uint new_val = row_max[i] + col_max[j];
 
@@ -114,7 +129,7 @@ public:
     }
   }
 
-  const void print() {
+  void print() const {
     for (int i = 0; i < N; i++) {
       for (int j = 0; j < N; j++) {
 	if (vals[i][j] != 0) printf(" %3d ", vals[i][j]);
@@ -141,17 +156,46 @@ private:
   point last_place;
 };
 
+template <uint N>
+void search(const board<N> &b, uint &best, unsigned long &count) {
+  if (count % 100000 == 0) {
+    cout << "Searching ... " << count << endl;
+    b.print();
+  }
+  count++;
+
+  // if (b.max_possible() < best) {
+  //   return;
+  // }
+  if (b.done() && b.score() >= best) {
+    cout << "Found score: " << b.score() << endl;
+    best = b.score();
+    b.print();
+  }
+
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      if (b.avail(i, j)) {
+	board<N> b2 = b;
+	b2.place(i, j);
+	if (b.free_count() == 11) {
+	  cout << "PLACING: " << i << ", " << j << endl;
+	  b2.print();
+	}
+	search(b2, best, count);
+      }
+    }
+  }
+}
+
 int main(int argc, char **argv) {
-  board<5> b;
+  // uint best = 0;
+  // unsigned long count = 0;
+  // board<4> b;
+  // search(b, best, count);
 
-  b.print();
-  cout << b.max_possible() << endl;
-
+  board<4> b;
   b.place(0, 1);
+  b.place(1, 0);
   b.print();
-  cout << b.max_possible() << endl;
-
-  b.place(2, 1);
-  b.print();
-  cout << b.max_possible() << endl;
 }
