@@ -35,10 +35,9 @@ public:
 
       row_max[i] = 1;
       col_max[i] = 1;
-      row_init[i] = false;
-      col_init[i] = false;
     }
 
+    square_used = 0;
     max[0] = max[1] = 1;
     n_free = N * (N - 1);
 
@@ -59,8 +58,8 @@ public:
     max[0] = new_val;
     n_free--;
 
-    row_init[i] = true;
-    col_init[j] = true;
+    if (i >= square_used) square_used = i + 1;
+    if (j >= square_used) square_used = j + 1;
 
     last_place.i = i;
     last_place.j = j;
@@ -99,34 +98,11 @@ public:
       if (i == last_place.i && j <= last_place.j) return false;
     }
 
-    if (row_init[i] && col_init[j]) return true;
+    // Allow any placement within or just outside the allocated square.
+    if (i <= square_used && j <= square_used) return true;
 
-    // If row is initialized but not column, only allow first
-    // uninitialized column (excluding diagonal).
-    if (row_init[i]) {
-      for (int j2 = 0; j2 < N; j2++) {
-	if (i != j2 && !col_init[j2]) return j == j2;
-      }
-    }
-
-    // If column is initialized but not row, only allow first
-    // uninitialized row (excluding diagonal).
-    if (col_init[j]) {
-      for (int i2 = 0; i2 < N; i2++) {
-	if (j != i2 && !row_init[i2]) return i == i2;
-      }
-    }
-
-    // If neither row nor column is initialized, only allow placement at
-    // first square in both an uninitialized row and column. TODO: Make
-    // this not quadratic by tracking position of next free slot.
-    for (int i2 = 0; i2 < N; i2++) {
-      if (row_init[i2]) continue;
-
-      for (int j2 = 0; j2 < N; j2++) {
-	if (i2 != j2 && !col_init[j2]) return (i == i2) && (j == j2);
-      }
-    }
+    // Otherwise only a single free space is allowed (for new 2's).
+    return (i == square_used) && (j == square_used + 1);
   }
 
   void print() const {
@@ -144,6 +120,8 @@ public:
 private:
   uint vals[N][N];
 
+  int square_used;
+
   bool row_init[N];
   bool col_init[N];
 
@@ -158,16 +136,14 @@ private:
 
 template <uint N>
 void search(const board<N> &b, uint &best, unsigned long &count) {
-  if (count % 100000 == 0) {
+  if (count % 10000000 == 0) {
     cout << "Searching ... " << count << endl;
     b.print();
   }
   count++;
 
-  // if (b.max_possible() < best) {
-  //   return;
-  // }
-  if (b.done() && b.score() >= best) {
+  if (b.max_possible() <= best) return;
+  if (b.done()) {
     cout << "Found score: " << b.score() << endl;
     best = b.score();
     b.print();
@@ -178,10 +154,6 @@ void search(const board<N> &b, uint &best, unsigned long &count) {
       if (b.avail(i, j)) {
 	board<N> b2 = b;
 	b2.place(i, j);
-	if (b.free_count() == 11) {
-	  cout << "PLACING: " << i << ", " << j << endl;
-	  b2.print();
-	}
 	search(b2, best, count);
       }
     }
@@ -189,13 +161,8 @@ void search(const board<N> &b, uint &best, unsigned long &count) {
 }
 
 int main(int argc, char **argv) {
-  // uint best = 0;
-  // unsigned long count = 0;
-  // board<4> b;
-  // search(b, best, count);
-
-  board<4> b;
-  b.place(0, 1);
-  b.place(1, 0);
-  b.print();
+  uint best = 0;
+  unsigned long count = 0;
+  board<5> b;
+  search(b, best, count);
 }
