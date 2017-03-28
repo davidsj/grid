@@ -1,11 +1,9 @@
 // https://redd.it/61mbrh
+// run with: g++ -O3 exhaust.cc -o exhaust && ./exhaust
 
 #include <cstdio>
 #include <iostream>
 #include <cmath>
-#include <vector>
-
-#include <unistd.h>
 
 using namespace std;
 
