@@ -115,7 +115,7 @@ public:
       for (int j = 0; j < N; j++) {
 	if (vals[i][j] != 0) printf(" %4d ", vals[i][j]);
 	else if (avail(i, j)) printf("[%4d]", row_max[i] + col_max[j]);
-	else printf("   _ ");
+	else printf("    _ ");
       }
       printf("\n");
     }
