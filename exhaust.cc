@@ -16,10 +16,10 @@ uint nth_fib(uint n, uint x, uint y) {
   float phi = (1. + sqrt5)/2.;
   float psi = (1. - sqrt5)/2.;
 
-  float a = (x - psi*y)/sqrt5 * pow(phi, n);
-  float b = (phi*y - x)/sqrt5 * pow(psi, n);
+  float a = (phi*x + y) * pow(phi, n);
+  float b = -(y + psi*x) * pow(psi, n);
 
-  return round(a*phi + b*psi);
+  return round((a + b)/sqrt5);
 }
 
 struct point {
