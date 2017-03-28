@@ -1,3 +1,5 @@
+// https://redd.it/61mbrh
+
 #include <cstdio>
 #include <iostream>
 #include <cmath>
@@ -9,6 +11,8 @@ using namespace std;
 
 typedef unsigned int uint;
 
+// Return the nth next number in a fibonacci sequence whose last two
+// entries are (y, x).
 uint nth_fib(uint n, uint x, uint y) {
   float sqrt5 = sqrt(5.);
   float phi = (1. + sqrt5)/2.;
@@ -28,6 +32,7 @@ template <uint N>
 class board {
 public:
   board() {
+    // Fill 1's on the main diagonal.
     for (int i = 0; i < N; i++) {
       for (int j = 0; j < N; j++) {
 	vals[i][j] = (i == j) ? 1 : 0;
@@ -85,20 +90,22 @@ public:
     if (vals[i][j] != 0) return false;
     uint new_val = row_max[i] + col_max[j];
 
-    // Only allow globally ascending placement.
+    // Only allow globally ascending placement (so that each finished
+    // board has a canonical construction order, limiting redundant
+    // searching).
     if (new_val < max[0]) return false;
       
-    // The remaining logic prevents certain placements which would be
-    // permutation-equivalent to others.
-
     // Only allow placing the same number twice if the second point
-    // comes after the first point.
+    // comes after the first point in row, column order (canonical
+    // construction order).
     if (new_val == max[0]) {
       if (i < last_place.i) return false;
       if (i == last_place.i && j <= last_place.j) return false;
     }
 
-    // Allow any placement within or just outside the allocated square.
+    // Allow any placement within or just outside the allocated square
+    // (allowing otherwise is redundant up to row and column
+    // permutation).
     if (i <= square_used && j <= square_used) return true;
 
     // Otherwise only a single free space is allowed (for new 2's).
@@ -108,8 +115,8 @@ public:
   void print() const {
     for (int i = 0; i < N; i++) {
       for (int j = 0; j < N; j++) {
-	if (vals[i][j] != 0) printf(" %3d ", vals[i][j]);
-	else if (avail(i, j)) printf("[%3d]", row_max[i] + col_max[j]);
+	if (vals[i][j] != 0) printf(" %4d ", vals[i][j]);
+	else if (avail(i, j)) printf("[%4d]", row_max[i] + col_max[j]);
 	else printf("   _ ");
       }
       printf("\n");
@@ -118,25 +125,31 @@ public:
   }
 
 private:
+  // Filled in values (0 for empty).
   uint vals[N][N];
 
+  // This is the side-length of the topleft part of the square that
+  // we've filled in so far. We only ever expand incrementally to avoid
+  // permutation-redundant searching.
   int square_used;
 
-  bool row_init[N];
-  bool col_init[N];
-
+  // Max value so far in each row and column.
   uint row_max[N];
   uint col_max[N];
 
+  // Largest and second-largest entry on the board.
   uint max[2];
+
+  // Number of free cells.
   uint n_free;
 
+  // The coordinates of the last entry.
   point last_place;
 };
 
 template <uint N>
 void search(const board<N> &b, uint &best, unsigned long &count) {
-  if (count % 10000000 == 0) {
+  if (count % 100000000 == 0) {
     cout << "Searching ... " << count << endl;
     b.print();
   }
